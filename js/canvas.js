@@ -1,6 +1,6 @@
+var links;
 var ik_canvas;
 var ctx;
-var links;
 var padding;
 var mouse_x;
 var mouse_y;
@@ -110,10 +110,6 @@ function draw_joints() {
     }
     
     draw_endeffector(current_x, current_y, current_angle);
-    
-    /*ctx.fillStyle = "#ffffff";
-    ctx.fill();
-    ctx.stroke();*/
 }
 
 function draw_link(link, x, y, angle) {
