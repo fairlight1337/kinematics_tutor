@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+
+<script type="text/javascript" src="ik.js">
+</script>
+
+<html>
+    <head>
+        <title>Kinematics Tutor</title>
+        <link rel="stylesheet" type="text/css" href="style.css"/>
+    </head>
+    
+    <body onload="init_canvas(document.getElementById('ik-display'));">
+        <center>
+            <canvas class="draw-ik" id="ik-display" width="600" height="400" onmousemove="mouse_move(event);" onmousedown="mouse_down(event);" onmouseup="mouse_up(event);">
+            </canvas>
+        </center>
+    </body>
+</html>
