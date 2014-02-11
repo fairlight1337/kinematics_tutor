@@ -376,7 +376,7 @@ function draw_data() {
 	}
 	
 	if(i > 0) {
-	    ctx_data.fillText("x" + i + " = (" + (current_x - padding - 0.5).toFixed(1) + ", " + (current_y - (ik_canvas.height - padding - 0.5)).toFixed(1) + ")",
+	    ctx_data.fillText("x" + i + " = (" + ((current_x - padding - 0.5) / 1000.0).toFixed(3) + ", " + ((current_y - (ik_canvas.height - padding - 0.5)) / 1000.0).toFixed(3) + ")",
 			      padding / 2,
 			      last_y + i * 20 + padding / 2);
 	}
@@ -387,7 +387,7 @@ function draw_data() {
         current_y -= link.length * Math.sin(current_angle);
     }
     
-    ctx_data.fillText("x" + i + " = (" + (current_x - padding - 0.5).toFixed(1) + ", " + (current_y - (ik_canvas.height - padding - 0.5)).toFixed(1) + ")",
+    ctx_data.fillText("x" + i + " = (" + ((current_x - padding - 0.5) / 1000.0).toFixed(3) + ", " + ((current_y - (ik_canvas.height - padding - 0.5)) / 1000.0).toFixed(3) + ")",
 		      padding / 2,
 		      last_y + i * 20 + padding / 2);
 }
@@ -578,13 +578,6 @@ function mouse_up(event) {
     mousebutton_down = false;
 }
 
-function download(filename, type, text) {
-    var pom = document.createElement("a");
-    pom.setAttribute("href", "data:" + type + "," + encodeURIComponent(text));
-    pom.setAttribute("download", filename);
-    pom.click();
-}
-
 function generateFKLaTeXFormulas() {
     return "";
 }
@@ -594,7 +587,93 @@ function generateFKLaTeXTikZ() {
 }
 
 function generateFKMathematica() {
-    return "";
+    var link, i, c = "(* Content-type: application/vnd.wolfram.mathematica *)\n\n";
+    c += "(*** Wolfram Notebook File ***)\n(* http://www.wolfram.com/nb *)\n\n(* CreatedBy='Mathematica 9.0' *)\n\n(* Beginning of Notebook Content *)\n";
+    
+    c += "Notebook[{";
+    // Lengths
+    c += "Cell[BoxData[{\n";
+    for(i = 0; i < links.length; i++) {
+	link = links[i];
+	
+	if(i > 0) {
+	    c += ", \"\\[IndentingNewLine]\",\n";
+	}
+	
+	c += "RowBox[{RowBox[{\"L\\[LetterSpace]" + i + "\", \"=\", \"" + (link.length / 1000.0) + "\"}], \";\"}]";
+    }
+    c += "}], \"Input\"],\n\n";
+    c += "Cell[BoxData[{\n";
+    
+    // Formulas
+    var parameters = "", old_parameters = "", angle_sum = "";
+    for(i = 0; i < links.length; i++) {
+	link = links[i];
+	
+	if(i > 0) {
+	    c += ", \"\\[IndentingNewLine]\",\n";
+	    parameters += ", \",\", ";
+	    angle_sum += ", \"+\", ";
+	    old_parameters += "\"q" + (i - 1) + "\"";
+	}
+	
+	parameters += "\"q" + i + "_\"";
+	angle_sum += "\"q" + i + "\"";
+	c += "RowBox[{\n";
+	c += "RowBox[{\"x\\[LetterSpace]" + i + "\", \"[\", RowBox[{" + parameters + "}], \"]\"}], \":=\",";
+	if(i > 0) {
+	    c += "RowBox[{\"x\\[LetterSpace]" + (i - 1) + "\", \"[\", RowBox[{" + old_parameters + "}], \"]\"}], \"+\",\n";
+	}
+	c += "RowBox[{\"{\",";
+	c += "RowBox[{";
+	c += "RowBox[{\"L\\[LetterSpace]" + i + "\", \"*\",";
+	c += "RowBox[{\"Cos\", \"[\", RowBox[{" + angle_sum + "}], \"]\"}]}], \",\",";
+	c += "RowBox[{\"L\\[LetterSpace]" + i + "\", \"*\",";
+	c += "RowBox[{\"Sin\", \"[\", RowBox[{" + angle_sum + "}], \"]\"}]}]}], \"}\"}]}]\n";
+	
+	if(i > 0) {
+	    old_parameters += ", \",\", ";
+	}
+    }
+    c += "}], \"Input\"],";
+    
+    // Angles
+    var angle_names = "";
+    
+    c += "Cell[BoxData[{\n";
+    for(i = 0; i < links.length; i++) {
+	link = links[i];
+	
+	if(i > 0) {
+	    c += ", \"\\[IndentingNewLine]\",\n";
+	    angle_names += ", \",\", ";
+	}
+	
+	var angle_rad, angle_length = link.angle;
+	
+	if(angle_length < -Math.PI) {
+	    angle_rad = 2 * Math.PI + angle_length;
+	} else if(angle_length > Math.PI) {
+	    angle_rad = -(2 * Math.PI - angle_length);
+	} else {
+	    angle_rad = angle_length;
+	}
+	
+	c += "RowBox[{RowBox[{\"q\\[LetterSpace]" + i + "\", \"=\", RowBox[{\"" + (angle_rad * 180.0 / Math.PI).toFixed(2) + "\", \"Degree\"}]}], \";\"}]";
+	angle_names += "\"q\\[LetterSpace]" + i + "\"";
+    }
+    c += "}], \"Input\"],";
+    
+    // Evaluation of end effector
+    c += "Cell[BoxData[{\n";
+    c += "RowBox[{\"x\\[LetterSpace]" + (links.length - 1) + "\", \"[\",";
+    c += "RowBox[{";
+    c += angle_names + "}], \"]\"}]";
+    c += "}], \"Input\"]";
+    
+    c += "}]\n";
+    
+    return c;
 }
 
 function export_fk(option) {
@@ -624,7 +703,7 @@ function export_fk(option) {
     
     if(file_type != "") {
 	var blobData = new Blob([file_content],
-				{file_type : "text/plain",
+				{"type" : file_type,
 				 endings : "transparent"});
 	window.saveAs(blobData, file_name);
     }
