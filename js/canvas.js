@@ -577,3 +577,55 @@ function mouse_down(event) {
 function mouse_up(event) {
     mousebutton_down = false;
 }
+
+function download(filename, type, text) {
+    var pom = document.createElement("a");
+    pom.setAttribute("href", "data:" + type + "," + encodeURIComponent(text));
+    pom.setAttribute("download", filename);
+    pom.click();
+}
+
+function generateFKLaTeXFormulas() {
+    return "";
+}
+
+function generateFKLaTeXTikZ() {
+    return "";
+}
+
+function generateFKMathematica() {
+    return "";
+}
+
+function export_fk(option) {
+    var file_name = "";
+    var file_type = "";
+    var file_content = "";
+    
+    switch(option) {
+    case "latex_formulas":
+	file_name = "ForwardKinematicsFormulas.tex";
+	file_type = "application/x-latex";
+	file_content = generateFKLaTeXFormulas();
+	break;
+
+    case "latex_tikz":
+	file_name = "ForwardKinematicsTikZ.tex";
+	file_type = "application/x-latex";
+	file_content = generateFKLaTeXTikZ();
+	break;
+	
+    case "mathematica":
+	file_name = "ForwardKinematics.nb";
+	file_type = "application/mathematica";
+	file_content = generateFKMathematica();
+	break;
+    }
+    
+    if(file_type != "") {
+	var blobData = new Blob([file_content],
+				{file_type : "text/plain",
+				 endings : "transparent"});
+	window.saveAs(blobData, file_name);
+    }
+}

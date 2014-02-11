@@ -1,7 +1,8 @@
 <!DOCTYPE HTML>
 
-<script type="text/javascript" src="js/canvas.js">
-</script>
+<script type="text/javascript" src="js/Blob.js"></script>
+<script type="text/javascript" src="js/FileSaver.js"></script>
+<script type="text/javascript" src="js/canvas.js"></script>
 
 <html>
     <head>
@@ -21,9 +22,23 @@
             </canvas>
 	  </li>
 	</ul>
-	<button type="Button" onmousedown="add_link(100, 0.0); redraw_canvas();">Add link</button>
-	<button type="Button" onmousedown="remove_last_link(); redraw_canvas();">Remove last link</button>
-	<button type="Button" onmousedown="build_random_chain(); redraw_canvas();">Build random chain</button>
+	<div style="border: 1px solid black; width: 755px; margin-top: -11px; margin-left: 40px; padding-top: 5px; padding-bottom: 5px;">
+	  <span style="margin-left: 0px">
+	    <button type="Button" onmousedown="add_link(100, 0.0); redraw_canvas();">Add link</button>
+	    <button type="Button" onmousedown="remove_last_link(); redraw_canvas();">Remove last link</button>
+	    <button type="Button" onmousedown="build_random_chain(); redraw_canvas();">Build random chain</button>
+	  </span>
+	  <span style="margin-left: 290px;">
+	  </span>
+	  <span>
+	    <select style="width: 100px" id="export_fk_options">
+	      <option value="latex_formulas">LaTeX / Formulas</option>
+	      <option value="latex_tikz">LaTeX / TikZ</option>
+	      <option value="mathematica">Mathematica</option>
+	    </select>
+	    <button type="Button" onmousedown="export_fk(document.getElementById('export_fk_options').value);">Export FK</button>
+	  </span>
+	</div>
       </center>
       <span style="position: absolute; right: 0px; bottom: 0px;">
 	&copy; 2014 Jan Winkler

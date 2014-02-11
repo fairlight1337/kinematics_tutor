@@ -4,10 +4,20 @@ body {
     background-color: white;
 }
 
-div, span, td, body {
+div, span, td, body, button, select {
+    background-color: white;
     color: black;
     font-family: sans-serif;
     font-size: 8pt;
+}
+
+button, select {
+    border: 1px solid black;
+    padding: 3px;
+}
+
+button:hover, select:hover {
+    background-color: lightgrey;
 }
 
 canvas.draw-ik {
