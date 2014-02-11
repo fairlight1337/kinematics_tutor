@@ -1,5 +1,6 @@
 body {
     margin: 0px;
+    margin-top: 50px;
     background-color: white;
 }
 
@@ -11,5 +12,10 @@ div, span, td, body {
 
 canvas.draw-ik {
     border: 1px solid black;
-    margin-top: 50px;
+    display: inline-block;
+}
+
+canvas.draw-data {
+    border: 1px solid black;
+    display: inline-block;
 }

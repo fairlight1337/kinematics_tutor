@@ -1,9 +1,8 @@
 var links;
-var ik_canvas;
-var ctx;
+var ik_canvas, data_canvas;
+var ctx, ctx_data;
 var padding;
-var mouse_x;
-var mouse_y;
+var mouse_x, mouse_y;
 var mousebutton_down;
 
 
@@ -12,9 +11,12 @@ function clear_canvas() {
     
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, ik_canvas.width, ik_canvas.height);
+    
+    ctx_data.fillStyle = "#ffffff";
+    ctx_data.fillRect(0, 0, data_canvas.width, data_canvas.height);
 }
 
-function draw_coordinate_system(pad, pixels_per_tick) {
+function draw_coordinate_system(pad, pixels_per_tick, label_every) {
     "use strict";
     
     var ticks_x, ticks_y, i;
@@ -23,24 +25,64 @@ function draw_coordinate_system(pad, pixels_per_tick) {
     ctx.borderStyle = "#000000";
     ctx.lineWidth = 1;
     
+    ctx.beginPath();
     ctx.moveTo(ik_canvas.width - padding, ik_canvas.height - padding);
     ctx.lineTo(padding, ik_canvas.height - padding);
     ctx.lineTo(padding, padding);
+    ctx.stroke();
     
     ticks_x = (ik_canvas.width - 2 * padding) / pixels_per_tick;
     ticks_y = (ik_canvas.height - 2 * padding) / pixels_per_tick;
     
     for (i = 1; i < ticks_x; i++) {
+	ctx.beginPath();
+	ctx.strokeStyle = "#efefef";
+	ctx.lineWidth = 1;
+        ctx.moveTo(padding + i * pixels_per_tick, ik_canvas.height - padding - 0);
+        ctx.lineTo(padding + i * pixels_per_tick, padding);
+	ctx.stroke();
+	
+	ctx.beginPath();
+	ctx.strokeStyle = "#000000";
+	ctx.lineWidth = 1;
         ctx.moveTo(padding + i * pixels_per_tick, ik_canvas.height - padding - 0);
         ctx.lineTo(padding + i * pixels_per_tick, ik_canvas.height - padding + 3);
+	ctx.stroke();
+	
+	if((i % label_every) == 0) {
+	    ctx.textBaseline = "top";
+	    ctx.textAlign = "center";
+	    ctx.font = "10px sans-serif";
+	    ctx.strokeStyle = "#000000";
+	    ctx.fillStyle = "#888888";
+	    ctx.fillText(i * pixels_per_tick / 1000.0, padding + i * pixels_per_tick, ik_canvas.height - padding + 5);
+	}
     }
     
     for (i = 1; i < ticks_y; i++) {
+	ctx.beginPath();
+	ctx.strokeStyle = "#efefef";
+	ctx.lineWidth = 1;
+        ctx.moveTo(padding, ik_canvas.height - padding - i * pixels_per_tick);
+        ctx.lineTo(ik_canvas.width - padding, ik_canvas.height - padding - i * pixels_per_tick);
+	ctx.stroke();
+	
+	ctx.beginPath();
+	ctx.strokeStyle = "#000000";
+	ctx.lineWidth = 1;
         ctx.moveTo(padding - 3, ik_canvas.height - padding - i * pixels_per_tick);
         ctx.lineTo(padding + 0, ik_canvas.height - padding - i * pixels_per_tick);
+	ctx.stroke();
+	
+	if((i % label_every) == 0) {
+	    ctx.textBaseline = "middle";
+	    ctx.textAlign = "right";
+	    ctx.font = "10px sans-serif";
+	    ctx.strokeStyle = "#000000";
+	    ctx.fillStyle = "#888888";
+	    ctx.fillText(i * pixels_per_tick / 1000.0, padding - 5, ik_canvas.height - padding - i * pixels_per_tick + 1);
+	}
     }
-    
-    ctx.stroke();
 }
 
 function draw_joint(link, x, y, angle) {
@@ -245,7 +287,6 @@ function draw_overlay() {
     for (i = 0; i < links.length; i++) {
         link = links[i];
         
-        draw_annotation(i, current_x, current_y, 3/4 * link.length, current_angle, link.angle);
         current_angle += link.angle;
         
         current_x += link.length * Math.cos(current_angle);
@@ -253,9 +294,58 @@ function draw_overlay() {
     }
     
     ctx.beginPath();
+    ctx.font = "12px sans-serif";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = "#000000";
+    ctx.fillStyle = "#888888";
+    
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
-    ctx.fillText("qee = " + Math.round(current_angle * 180.0 / Math.PI, 2) + " deg", ik_canvas.width - padding, padding);
+    ctx.fillText("qee = " + (current_angle * 180.0 / Math.PI).toFixed(2) + " deg", ik_canvas.width - padding, padding);
+}
+
+function draw_data() {
+    "use strict";
+    
+    var link, i, current_angle, current_x, current_y;
+    
+    // Angles
+    current_angle = 0;
+    current_x = padding + 0.5;
+    current_y = ik_canvas.height - padding - 0.5;
+    
+    for (i = 0; i < links.length; i++) {
+        link = links[i];
+        
+	ctx_data.beginPath();
+	ctx_data.font = "12px sans-serif";
+	ctx_data.textBaseline = "top";
+	ctx_data.textAlign = "left";
+	ctx_data.lineWidth = 1.0;
+	ctx_data.strokeStyle = "#000000";
+	ctx_data.fillStyle = "#888888";
+
+	var angle_rad;
+	
+	if(link.angle < -Math.PI) {
+	    angle_rad = 2 * Math.PI + link.angle;
+	} else if(link.angle > Math.PI) {
+	    angle_rad = -(2 * Math.PI - link.angle);
+	} else {
+	    angle_rad = link.angle;
+	}
+	
+	ctx_data.fillText("q" + i + " = " + (angle_rad * 180.0 / Math.PI).toFixed(2) + " deg",
+			  padding,
+			  i * 20 + padding);
+	
+        current_angle += link.angle;
+        
+        current_x += link.length * Math.cos(current_angle);
+        current_y -= link.length * Math.sin(current_angle);
+    }
 }
 
 function check_selections() {
@@ -299,7 +389,7 @@ function redraw_canvas() {
     ctx.lineWidth = 1.0;
     ctx.strokeStyle = "#000000";
     
-    draw_coordinate_system(20.5, 25);
+    draw_coordinate_system(20.5, 20, 5);
     
     ctx.lineWidth = 1.0;
     ctx.strokeStyle = "#000000";
@@ -321,6 +411,7 @@ function redraw_canvas() {
     ctx.strokeStyle = "#000000";
     
     draw_overlay();
+    draw_data();
 }
 
 function Link(length, angle) {
@@ -339,11 +430,14 @@ function add_link(length, angle) {
     links.push(link);
 }
 
-function init_canvas(canvas) {
+function init_canvas(canvas, data_displayer) {
     "use strict";
     
     ik_canvas = canvas;
+    data_canvas = data_displayer;
+    
     ctx = ik_canvas.getContext("2d");
+    ctx_data = data_canvas.getContext("2d");
     
     links = [];
     mousebutton_down = false;

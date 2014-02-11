@@ -9,10 +9,17 @@
         <link rel="stylesheet" type="text/css" href="css/style.css"/>
     </head>
     
-    <body onload="init_canvas(document.getElementById('ik-display'));">
+    <body onload="init_canvas(document.getElementById('ik-display'), document.getElementById('data-display'));">
         <center>
-            <canvas class="draw-ik" id="ik-display" width="600" height="400" onmousemove="mouse_move(event);" onmousedown="mouse_down(event);" onmouseup="mouse_up(event);">
-            </canvas>
+	  <ul>
+	    <li style="display: inline">
+              <canvas class="draw-data" id="data-display" width="150" height="400">
+              </canvas>
+	    </li>
+	    <li style="display: inline">
+              <canvas class="draw-ik" id="ik-display" width="600" height="400" onmousemove="mouse_move(event);" onmousedown="mouse_down(event);" onmouseup="mouse_up(event);">
+              </canvas>
+	    </li>
         </center>
     </body>
 </html>
