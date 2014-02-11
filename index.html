@@ -10,16 +10,20 @@
     </head>
     
     <body onload="init_canvas(document.getElementById('ik-display'), document.getElementById('data-display'));">
-        <center>
-	  <ul>
-	    <li style="display: inline">
-              <canvas class="draw-data" id="data-display" width="150" height="400">
-              </canvas>
-	    </li>
-	    <li style="display: inline">
-              <canvas class="draw-ik" id="ik-display" width="600" height="400" onmousemove="mouse_move(event);" onmousedown="mouse_down(event);" onmouseup="mouse_up(event);">
-              </canvas>
-	    </li>
-        </center>
+      <center>
+	<ul>
+	  <li style="display: inline">
+            <canvas class="draw-data" id="data-display" width="150" height="400">
+            </canvas>
+	  </li>
+	  <li style="display: inline">
+            <canvas class="draw-ik" id="ik-display" width="600" height="400" onmousemove="mouse_move(event);" onmousedown="mouse_down(event);" onmouseup="mouse_up(event);">
+            </canvas>
+	  </li>
+	</ul>
+	<button type="Button" onmousedown="add_link(100, 0.0); redraw_canvas();">Add link</button>
+	<button type="Button" onmousedown="remove_last_link(); redraw_canvas();">Remove last link</button>
+	<button type="Button" onmousedown="build_random_chain(); redraw_canvas();">Build random chain</button>
+      </center>
     </body>
 </html>

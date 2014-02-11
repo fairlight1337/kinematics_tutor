@@ -315,6 +315,7 @@ function draw_data() {
     current_angle = 0;
     current_x = padding + 0.5;
     current_y = ik_canvas.height - padding - 0.5;
+    var last_y = 0;
     
     for (i = 0; i < links.length; i++) {
         link = links[i];
@@ -338,14 +339,57 @@ function draw_data() {
 	}
 	
 	ctx_data.fillText("q" + i + " = " + (angle_rad * 180.0 / Math.PI).toFixed(2) + " deg",
-			  padding,
-			  i * 20 + padding);
+			  padding / 2,
+			  i * 20 + padding / 2);
+	
+        current_angle += link.angle;
+        
+        current_x += link.length * Math.cos(current_angle);
+        current_y -= link.length * Math.sin(current_angle);
+	last_y = i * 20 + padding / 2;
+    }
+    
+    // Positions
+    current_angle = 0;
+    current_x = padding + 0.5;
+    current_y = ik_canvas.height - padding - 0.5;
+    
+    for (i = 0; i < links.length; i++) {
+        link = links[i];
+        
+	ctx_data.beginPath();
+	ctx_data.font = "12px sans-serif";
+	ctx_data.textBaseline = "top";
+	ctx_data.textAlign = "left";
+	ctx_data.lineWidth = 1.0;
+	ctx_data.strokeStyle = "#000000";
+	ctx_data.fillStyle = "#888888";
+
+	var angle_rad;
+	
+	if(link.angle < -Math.PI) {
+	    angle_rad = 2 * Math.PI + link.angle;
+	} else if(link.angle > Math.PI) {
+	    angle_rad = -(2 * Math.PI - link.angle);
+	} else {
+	    angle_rad = link.angle;
+	}
+	
+	if(i > 0) {
+	    ctx_data.fillText("x" + i + " = (" + (current_x - padding - 0.5).toFixed(1) + ", " + (current_y - (ik_canvas.height - padding - 0.5)).toFixed(1) + ")",
+			      padding / 2,
+			      last_y + i * 20 + padding / 2);
+	}
 	
         current_angle += link.angle;
         
         current_x += link.length * Math.cos(current_angle);
         current_y -= link.length * Math.sin(current_angle);
     }
+    
+    ctx_data.fillText("x" + i + " = (" + (current_x - padding - 0.5).toFixed(1) + ", " + (current_y - (ik_canvas.height - padding - 0.5)).toFixed(1) + ")",
+		      padding / 2,
+		      last_y + i * 20 + padding / 2);
 }
 
 function check_selections() {
@@ -430,6 +474,27 @@ function add_link(length, angle) {
     links.push(link);
 }
 
+function remove_last_link() {
+    links.pop();
+}
+
+function build_random_chain() {
+    var i, n = 0;
+    
+    while(n < 2) {
+	n = Math.round(Math.random() * 5);
+    }
+    
+    links = [];
+    var cur_ang = 0;
+    
+    for(i = 0; i < n; i++) {
+	var angle = Math.random() * Math.PI / 2 - cur_ang;
+	add_link(100, angle);
+	cur_ang += angle;
+    }
+}
+
 function init_canvas(canvas, data_displayer) {
     "use strict";
     
@@ -446,7 +511,7 @@ function init_canvas(canvas, data_displayer) {
     
     add_link(100, Math.PI / 4);
     add_link(100, -Math.PI / 4);
-    add_link(150, Math.PI / 4);
+    add_link(100, Math.PI / 4);
     
     redraw_canvas();
 }
