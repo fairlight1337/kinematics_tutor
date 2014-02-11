@@ -163,38 +163,51 @@ function draw_links() {
     ctx.stroke();*/
 }
 
-function draw_annotation(x, y, length, angle_from, angle_length) {
+function draw_annotation(index, x, y, length, angle_from, angle_length) {
     "use strict";
     
     var linewidth = 0.75;
     var linecolor = "#aaaaaa";
+    var angle_whole = angle_from + angle_length;
     
-    if(Math.sin(angle_length) > 0) {
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + length * Math.cos(-angle_from), y + length * Math.sin(-angle_from));
-        ctx.lineWidth = linewidth;
-        ctx.strokeStyle = linecolor;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(x, y, length, -angle_from, -(angle_from + angle_length), true);
-        ctx.lineWidth = linewidth;
-        ctx.strokeStyle = linecolor;
-        ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + length * Math.cos(-angle_from), y + length * Math.sin(-angle_from));
+    ctx.lineWidth = linewidth;
+    ctx.strokeStyle = linecolor;
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(x, y, length, -angle_from, -angle_whole, Math.sin(angle_length) > 0);
+    ctx.lineWidth = linewidth;
+    ctx.strokeStyle = linecolor;
+    ctx.stroke();
+    
+    ctx.font = "12px sans-serif";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = "#000000";
+    ctx.fillStyle = "#888888";
+    
+    var angle_rad;
+    
+    if(angle_length < -Math.PI) {
+	angle_rad = 2 * Math.PI + angle_length;
+    } else if(angle_length > Math.PI) {
+	angle_rad = -(2 * Math.PI - angle_length);
     } else {
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + length * Math.cos(-angle_from), y + length * Math.sin(-angle_from));
-        ctx.lineWidth = linewidth;
-        ctx.strokeStyle = linecolor;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(x, y, length, -angle_from, -(angle_from + angle_length), false);
-        ctx.lineWidth = linewidth;
-        ctx.strokeStyle = linecolor;
-        ctx.stroke();
+	angle_rad = angle_length;
+    }
+    
+    if(angle_rad > 0) {
+	ctx.fillText("q" + index,
+    		     x + (3/4 * length) * Math.cos(angle_from + angle_rad / 2),
+    		     y - (3/4 * length) * Math.sin(angle_from + angle_rad / 2));
+    } else {
+	ctx.fillText("-q" + index,
+    		     x + (3/4 * length) * Math.cos(angle_from + angle_rad / 2),
+    		     y - (3/4 * length) * Math.sin(angle_from + angle_rad / 2));
     }
 }
 
@@ -211,12 +224,38 @@ function draw_annotations() {
     for (i = 0; i < links.length; i++) {
         link = links[i];
         
-        draw_annotation(current_x, current_y, 3/4 * link.length, current_angle, link.angle);
+        draw_annotation(i, current_x, current_y, 3/4 * link.length, current_angle, link.angle);
         current_angle += link.angle;
         
         current_x += link.length * Math.cos(current_angle);
         current_y -= link.length * Math.sin(current_angle);
     }
+}
+
+function draw_overlay() {
+    "use strict";
+    
+    var link, i, current_angle, current_x, current_y;
+    
+    // Angles
+    current_angle = 0;
+    current_x = padding + 0.5;
+    current_y = ik_canvas.height - padding - 0.5;
+    
+    for (i = 0; i < links.length; i++) {
+        link = links[i];
+        
+        draw_annotation(i, current_x, current_y, 3/4 * link.length, current_angle, link.angle);
+        current_angle += link.angle;
+        
+        current_x += link.length * Math.cos(current_angle);
+        current_y -= link.length * Math.sin(current_angle);
+    }
+    
+    ctx.beginPath();
+    ctx.textAlign = "right";
+    ctx.textBaseline = "top";
+    ctx.fillText("qee = " + Math.round(current_angle * 180.0 / Math.PI, 2) + " deg", ik_canvas.width - padding, padding);
 }
 
 function check_selections() {
@@ -280,6 +319,8 @@ function redraw_canvas() {
     
     ctx.lineWidth = 1.0;
     ctx.strokeStyle = "#000000";
+    
+    draw_overlay();
 }
 
 function Link(length, angle) {
@@ -311,9 +352,7 @@ function init_canvas(canvas) {
     
     add_link(100, Math.PI / 4);
     add_link(100, -Math.PI / 4);
-    add_link(100, Math.PI / 4);
-    add_link(100, Math.PI / 4);
-    add_link(100, Math.PI / 5);
+    add_link(150, Math.PI / 4);
     
     redraw_canvas();
 }
