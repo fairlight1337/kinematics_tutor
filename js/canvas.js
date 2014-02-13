@@ -676,7 +676,184 @@ function generateFKMathematica() {
     return c;
 }
 
+function Point(x, y) {
+    "use strict";
+    
+    this.x = x;
+    this.y = y;
+}
+
+function Solution(neg, pos) {
+    "use strict";
+    
+    this.pos = pos;
+    this.neg = neg;
+}
+
+function circle_joint(x0, y0, r0, x1, y1, r1) {
+    "use strict";
+    // This function returns the intermediate joint position Point
+    // between two links. `solution_index` can be either 0 or two for
+    // the positive or the negative solution, respectively.
+    var dx = x0 - x1;
+    var dy = y0 - y1;
+
+    var y_sqrt_sum = Math.pow(dy, 2) * (Math.pow(dx, 2) + Math.pow(dy, 2) - Math.pow(r0 - r1, 2)) * (-Math.pow(dx, 2) - Math.pow(dy, 2) + Math.pow(r0 + r1, 2));
+    var x_sqrt_sum = -Math.pow(dx, 2) * (-Math.pow(dx, 2) - Math.pow(dy, 2) + Math.pow(r0 - r1, 2)) * (-Math.pow(dx, 2) - Math.pow(dy, 2) + Math.pow(r0 + r1, 2))
+    
+    console.info("circle_joint(" + x0 + ", " + y0 + ", " + r0 + ", " + x1 + ", " + y1 + ", " + r1 + ")");
+    
+    if(Math.abs(dy) > 0.001) {
+	console.info("in dy: " + y_sqrt_sum);
+	
+	if(y_sqrt_sum < 0 && y_sqrt_sum > -0.01) {
+	    y_sqrt_sum = 0;
+	}
+	
+	var y_sqrt = Math.sqrt(y_sqrt_sum);
+	var y_neg = (1 / (2 * (Math.pow(dx, 2) + Math.pow(dy, 2)) * dy)) * (-Math.pow(dy, 2) * Math.pow(r0, 2) + Math.pow(dy, 2) * Math.pow(r1, 2) + dy * (Math.pow(dx, 2) + Math.pow(dy, 2)) * (y0 + y1) + y_sqrt * x0 - y_sqrt * x1);
+	var y_pos = (1 / (2 * (Math.pow(dx, 2) + Math.pow(dy, 2)) * dy)) * (-Math.pow(dy, 2) * Math.pow(r0, 2) + Math.pow(dy, 2) * Math.pow(r1, 2) + dy * (Math.pow(dx, 2) + Math.pow(dy, 2)) * (y0 + y1) - y_sqrt * x0 + y_sqrt * x1);
+	
+	var x_neg_neg = x0 - Math.sqrt(Math.pow(r0, 2) - Math.pow(y_neg, 2) + 2 * y_neg * y0 - Math.pow(y0, 2));
+	var x_neg_pos = x0 + Math.sqrt(Math.pow(r0, 2) - Math.pow(y_neg, 2) + 2 * y_neg * y0 - Math.pow(y0, 2));
+	var x_pos_neg = x0 - Math.sqrt(Math.pow(r0, 2) - Math.pow(y_pos, 2) + 2 * y_pos * y0 - Math.pow(y0, 2));
+	var x_pos_pos = x0 + Math.sqrt(Math.pow(r0, 2) - Math.pow(y_pos, 2) + 2 * y_pos * y0 - Math.pow(y0, 2));
+	
+	if(y_neg != y_pos) {
+	    return Array(new Solution(new Point(x_neg_neg, y_neg), new Point(x_neg_pos, y_neg)), new Solution(new Point(x_pos_neg, y_pos), new Point(x_pos_pos, y_pos)));
+	} else {
+	    return Array(new Solution(new Point(x_neg_neg, y_neg), new Point(x_neg_pos, y_neg)));
+	}
+    } else if(Math.abs(dx) > 0.001) {
+	console.info("in dx: " + x_sqrt_sum);
+	
+	if(x_sqrt_sum < 0 && x_sqrt_sum > -0.01) {
+	    x_sqrt_sum = 0;
+	}
+	
+	var x_sqrt = Math.sqrt(x_sqrt_sum);
+	var x_neg = (1 / (2 * (Math.pow(dx, 2) + Math.pow(dy, 2)) * dx)) * (-Math.pow(dx, 2) * Math.pow(r0, 2) + Math.pow(dx, 2) * Math.pow(r1, 2) + dx * (Math.pow(dx, 2) + Math.pow(dy, 2)) * (x0 + x1) + x_sqrt * y0 - x_sqrt * y1);
+	var x_pos = (1 / (2 * (Math.pow(dx, 2) + Math.pow(dy, 2)) * dx)) * (-Math.pow(dx, 2) * Math.pow(r0, 2) + Math.pow(dx, 2) * Math.pow(r1, 2) + dx * (Math.pow(dx, 2) + Math.pow(dy, 2)) * (x0 + x1) - x_sqrt * y0 + x_sqrt * y1);
+	
+	var y_neg_neg = y0 - Math.sqrt(Math.pow(r0, 2) - Math.pow(x_neg, 2) + 2 * x_neg * x0 - Math.pow(x0, 2));
+	var y_neg_pos = y0 + Math.sqrt(Math.pow(r0, 2) - Math.pow(x_neg, 2) + 2 * x_neg * x0 - Math.pow(x0, 2));
+	var y_pos_neg = y0 - Math.sqrt(Math.pow(r0, 2) - Math.pow(x_pos, 2) + 2 * x_pos * x0 - Math.pow(x0, 2));
+	var y_pos_pos = y0 + Math.sqrt(Math.pow(r0, 2) - Math.pow(x_pos, 2) + 2 * x_pos * x0 - Math.pow(x0, 2));
+	
+	if(x_neg != x_pos) {
+	    return Array(new Solution(new Point(x_neg, y_neg_neg), new Point(x_neg, y_neg_pos)), new Solution(new Point(x_pos, y_pos_neg), new Point(x_pos, y_pos_pos)));
+	} else {
+	    return Array(new Solution(new Point(x_neg, y_neg_neg), new Point(x_neg, y_neg_pos)));
+	}
+    } else {
+	console.warn("No solution!");
+	
+	return Array();
+    }
+}
+
+function get_ik(x, y) {
+    "use strict";
+    // This function returns the inverse kinematics solution for two
+    // links and their intermediate joint
+    /*var solutions = circle_joint(from_x, from_y, from_length, to_x, to_y, to_length);
+    console.log(solutions);*/
+    
+    var solutions = null, i, link;
+    var from_x, from_y;
+    var sol_pts = Array();
+    
+    for(i = 0; i < links.length - 1; i++) {
+	link = links[i];
+	
+	if(i == 0) {
+	    from_x = 0;
+	    from_y = 0;
+	}
+	
+	var remaining_length = 0;
+	var j;
+	for(j = i + 1; j < links.length; j++) {
+	    remaining_length += links[j].length;
+	    solutions = circle_joint(from_x, from_y, link.length / 1000.0, x, y, remaining_length / 1000.0);
+	    
+	    if(solutions.length > 0) {
+		break;
+	    }
+	}
+	
+	if(solutions.length > 0) {
+	    // Solution selection
+	    var solution = solutions[0].pos;
+	    
+	    from_x = solution.x;
+	    from_y = solution.y;
+	    sol_pts.push(solution);
+	    
+	    solutions = null;
+	} else {
+	    console.warn("Couldn't find solution for link " + i + "! Aborting.");
+	    
+	    break;
+	}
+    }
+    
+    return sol_pts;
+}
+
+function test_ik() {
+    var x_ref = 0.0;
+    var y_ref = 0.1;
+    
+    var sols = get_ik(x_ref, y_ref);
+    var sol, x0 = 0, y0 = 0, angle0 = 0;
+    
+    ctx.beginPath();
+    
+    console.info(sols);
+    for(i in sols) {
+	sol = sols[i];
+	ctx.strokeColor = "#000000";
+	
+	var x = 1000 * sol.x + padding;
+	var y = (ik_canvas.height - padding) - 1000 * sol.y;
+	ctx.moveTo(x, y);
+	ctx.arc(x, y, 100, 0, 2 * Math.PI);
+	
+	var angle;
+	if(sol.y - y0 < 0) {
+	    angle = Math.asin((sol.y - y0) / (links[i].length / 1000.0));
+	} else {
+	    angle = Math.acos((sol.x - x0) / (links[i].length / 1000.0));
+	}
+	
+	links[i].angle = angle - angle0;
+	
+	x0 = sol.x;
+	y0 = sol.y;
+	console.info("Setting " + sol.x + ", " + sol.y);
+	angle0 += angle;
+    }
+    
+    var angle_end;
+    if(x0 - x_ref < 0) {
+	console.info("!");
+	angle_end = Math.asin((y_ref - y0) / (links[links.length - 1].length / 1000.0));
+    } else {
+	console.info("? " + x_ref + ", " + x0 + ", " + ((x_ref - x0) / (links[links.length - 1].length / 1000.0)));
+	angle_end = Math.acos((x_ref - x0) / (links[links.length - 1].length / 1000.0));
+    }
+    
+    links[links.length - 1].angle = angle_end - angle0;
+    
+    ctx.stroke();
+    
+    redraw_canvas();
+}
+
 function export_fk(option) {
+    "use strict";
+    
     var file_name = "";
     var file_type = "";
     var file_content = "";

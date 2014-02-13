@@ -1,13 +1,16 @@
 <!DOCTYPE HTML>
 
-<script type="text/javascript" src="js/Blob.js"></script>
-<script type="text/javascript" src="js/FileSaver.js"></script>
-<script type="text/javascript" src="js/canvas.js"></script>
-
 <html>
     <head>
         <title>Kinematics Tutor</title>
+	
         <link rel="stylesheet" type="text/css" href="css/style.css"/>
+	
+	<script type="text/javascript" src="js/Blob.js"></script>
+	<script type="text/javascript" src="js/FileSaver.js"></script>
+	<script type="text/javascript" src="js/canvas.js"></script>
+	
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
     </head>
     
     <body onload="init_canvas(document.getElementById('ik-display'), document.getElementById('data-display'));">
@@ -37,6 +40,7 @@
 	      <option value="mathematica">Mathematica</option>
 	    </select>
 	    <button type="Button" onmousedown="export_fk(document.getElementById('export_fk_options').value);">Export FK</button>
+	    <button type="Button" onmousedown="test_ik();">Test</button>
 	  </span>
 	</div>
       </center>
